@@ -12,6 +12,7 @@ from sam_capabilities.windows.clipboard import ClipboardSkill
 from sam_capabilities.windows.files import SafeFileSkill
 from sam_capabilities.windows.media import MediaControlSkill
 from sam_capabilities.windows.system_info import SystemInfoSkill
+from sam_vision.skill import VisionSkill
 
 
 def initialize_default_skills() -> None:
@@ -25,6 +26,7 @@ def initialize_default_skills() -> None:
         ControlledShellSkill(),
         WebSearchSkill(),
         WebFetchSkill(),
+        VisionSkill(),
     ]
     for skill in skills:
         if not skill_registry.has_skill(skill.name):
@@ -47,4 +49,5 @@ __all__ = [
     "ControlledShellSkill",
     "WebSearchSkill",
     "WebFetchSkill",
+    "VisionSkill",
 ]

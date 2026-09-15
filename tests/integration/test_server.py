@@ -64,7 +64,7 @@ def test_websocket_rpc_status():
         raw = ws.receive_text()
         resp = json.loads(raw)
         assert "ready" in resp["result"]["subsystems"]["ai_engine"]
-        assert resp["result"]["subsystems"]["voice_engine"] == "not_implemented"
+        assert resp["result"]["subsystems"]["voice_engine"] == "ready"
 
 
 def test_websocket_rpc_unknown_method():

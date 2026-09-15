@@ -103,3 +103,11 @@ class EventBus:
 
 # Global singleton instance
 event_bus = EventBus()
+
+
+def get_event_bus() -> EventBus:
+    """Get the global EventBus instance."""
+    return event_bus
+
+
+__all__ = ["EventBus", "event_bus", "get_event_bus"]

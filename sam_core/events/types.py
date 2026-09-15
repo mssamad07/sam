@@ -74,3 +74,12 @@ class SystemStatusEvent(BaseEvent):
     """Periodic or trigger-based health and status update."""
     status: str  # 'ready', 'busy', 'degraded', 'error'
     details: dict[str, Any] = Field(default_factory=dict)
+
+
+class GenericEvent(BaseEvent):
+    """Generic event container with a string event_type and arbitrary payload."""
+    event_type: str = "generic"
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+Event = GenericEvent
