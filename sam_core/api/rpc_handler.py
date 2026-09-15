@@ -6,6 +6,7 @@ from collections.abc import Callable, Coroutine
 from typing import Any
 
 from sam_capabilities.registry import skill_registry
+from sam_core.ai.router import llm_router
 from sam_core.api.ipc_models import (
     JsonRpcErrorCode,
     JsonRpcNotification,
@@ -13,6 +14,7 @@ from sam_core.api.ipc_models import (
     parse_ipc_message,
 )
 from sam_core.config import settings
+from sam_core.conversation.orchestrator import agent_orchestrator
 from sam_core.logger import clear_correlation_id, get_logger, set_correlation_id
 from sam_core.permissions.manager import permission_manager
 
@@ -38,6 +40,8 @@ class JsonRpcHandler:
         self.register_method("sam.ping", self._method_ping)
         self.register_method("sam.status", self._method_status)
         self.register_method("sam.list_skills", self._method_list_skills)
+        self.register_method("sam.list_providers", self._method_list_providers)
+        self.register_method("sam.send_message", self._method_send_message)
         self.register_method("sam.resolve_permission", self._method_resolve_permission)
 
     async def _method_ping(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -46,6 +50,7 @@ class JsonRpcHandler:
 
     async def _method_status(self, params: dict[str, Any]) -> dict[str, Any]:
         """Truthful system status reporting."""
+        active_provider = llm_router.get_provider()
         return {
             "app_name": settings.app_name,
             "version": settings.version,
@@ -56,13 +61,15 @@ class JsonRpcHandler:
                 "ipc": "ready",
                 "event_bus": "ready",
                 "skill_registry": "ready",
-                "ai_engine": "not_implemented",
+                "ai_engine": f"ready ({active_provider.name})",
+                "conversation_engine": "ready",
                 "voice_engine": "not_implemented",
                 "memory_system": "not_implemented",
                 "windows_automation": "not_implemented",
                 "android_client": "not_implemented",
             },
             "registered_skills_count": skill_registry.count,
+            "active_provider": active_provider.name,
         }
 
     async def _method_list_skills(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -72,6 +79,37 @@ class JsonRpcHandler:
             for s in skill_registry.list_skills()
         ]
         return {"count": len(skills), "skills": skills}
+
+    async def _method_list_providers(self, params: dict[str, Any]) -> dict[str, Any]:
+        """List registered LLM providers and their availability."""
+        statuses = [s.model_dump() for s in llm_router.list_statuses()]
+        return {"count": len(statuses), "providers": statuses}
+
+    async def _method_send_message(self, params: dict[str, Any]) -> dict[str, Any]:
+        """Send a message into Sam's conversational agent orchestrator."""
+        text = params.get("text", "").strip()
+        session_id = params.get("session_id")
+        provider_name = params.get("provider")
+        confirmation_token = params.get("confirmation_token")
+
+        if not text:
+            raise ValueError("Parameter 'text' cannot be empty.")
+
+        res = await agent_orchestrator.process_user_turn(
+            user_text=text,
+            session_id=session_id,
+            provider_name=provider_name,
+            confirmation_token=confirmation_token,
+        )
+
+        return {
+            "response": res.response_text,
+            "task_id": res.task_id,
+            "task_state": res.task_state.value if res.task_state else None,
+            "confirmation_required": res.confirmation_required,
+            "confirmation_token": res.confirmation_token,
+            "tool_results": res.tool_results,
+        }
 
     async def _method_resolve_permission(self, params: dict[str, Any]) -> dict[str, Any]:
         """Approve or deny a pending authorization token."""
@@ -92,11 +130,11 @@ class JsonRpcHandler:
     async def handle_payload(self, raw_data: str) -> str | None:
         """
         Parse raw incoming JSON string, validate, route method, and return JSON-RPC response.
-        Returns None for notifications (no response per JSON-RPC spec).
+        Returns None for notifications.
         """
         try:
             msg = parse_ipc_message(raw_data)
-        except ValueError as exc:
+        except (ValueError, TypeError) as exc:
             logger.warning(f"Invalid IPC payload received: {exc}")
             resp = JsonRpcResponse.failure(
                 req_id=None,
@@ -105,7 +143,7 @@ class JsonRpcHandler:
             )
             return resp.model_dump_json()
 
-        # Handle Notification (No response expected)
+        # Handle Notification
         if isinstance(msg, JsonRpcNotification):
             if msg.method in self._methods:
                 try:

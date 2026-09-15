@@ -1,6 +1,6 @@
 """
 Base interfaces and data structures for modular skills and capabilities in Sam.
-Provides extensible foundations for future tools without OS or external dependencies in Phase 1.
+Provides extensible foundations for tools, schema exports, and safe execution results.
 """
 from abc import ABC, abstractmethod
 from typing import Any
@@ -26,6 +26,70 @@ class ToolDefinition(BaseModel):
     risk_tier: RiskTier = RiskTier.TIER_1_SAFE
     parameters: list[ToolParameter] = Field(default_factory=list)
     parameters_schema: dict[str, Any] | None = None
+
+    def to_gemini_dict(self) -> dict[str, Any]:
+        """Convert tool definition to Gemini function declaration schema."""
+        if self.parameters_schema:
+            return {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters_schema,
+            }
+
+        properties = {}
+        required = []
+        for param in self.parameters:
+            properties[param.name] = {
+                "type": param.type_str,
+                "description": param.description,
+            }
+            if param.required:
+                required.append(param.name)
+
+        return {
+            "name": self.name,
+            "description": self.description,
+            "parameters": {
+                "type": "OBJECT",
+                "properties": properties,
+                "required": required,
+            },
+        }
+
+    def to_openai_dict(self) -> dict[str, Any]:
+        """Convert tool definition to OpenAI function definition schema."""
+        if self.parameters_schema:
+            return {
+                "type": "function",
+                "function": {
+                    "name": self.name,
+                    "description": self.description,
+                    "parameters": self.parameters_schema,
+                },
+            }
+
+        properties = {}
+        required = []
+        for param in self.parameters:
+            properties[param.name] = {
+                "type": param.type_str,
+                "description": param.description,
+            }
+            if param.required:
+                required.append(param.name)
+
+        return {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": required,
+                },
+            },
+        }
 
 
 class ToolResult(BaseModel):

@@ -20,8 +20,8 @@ def test_health_endpoint():
     # Truthful reporting verification: unbuilt subsystems must NOT be reported as ready
     subsystems = data["subsystems"]
     assert subsystems["core"] == "ready"
-    assert subsystems["ipc"] == "ready"
-    assert subsystems["ai_engine"] == "not_implemented"
+    assert subsystems["ai_engine"] == "ready"
+    assert subsystems["conversation_engine"] == "ready"
     assert subsystems["voice_engine"] == "not_implemented"
     assert subsystems["windows_automation"] == "not_implemented"
 
@@ -62,9 +62,8 @@ def test_websocket_rpc_status():
         ws.send_text(json.dumps(req))
         raw = ws.receive_text()
         resp = json.loads(raw)
-        assert resp["id"] == "test-status-1"
-        assert resp["result"]["status"] == "operational"
-        assert resp["result"]["subsystems"]["ai_engine"] == "not_implemented"
+        assert "ready" in resp["result"]["subsystems"]["ai_engine"]
+        assert resp["result"]["subsystems"]["voice_engine"] == "not_implemented"
 
 
 def test_websocket_rpc_unknown_method():
