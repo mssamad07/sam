@@ -24,6 +24,8 @@ connected_clients: set[WebSocket] = set()
 async def lifespan(app: FastAPI):
     """Lifecycle manager for startup and graceful shutdown."""
     setup_logging(level=settings.log_level, logs_dir=settings.logs_dir)
+    from sam_capabilities import initialize_default_skills
+    initialize_default_skills()
     logger.info("==================================================")
     logger.info(f"  {settings.app_name} Core Starting Up (v{settings.version})")
     logger.info(f"  Environment : {settings.environment}")
@@ -111,9 +113,10 @@ async def health_check():
             "skill_registry": "ready",
             "ai_engine": "ready",
             "conversation_engine": "ready",
+            "windows_automation": "ready",
+            "web_access": "ready",
             "voice_engine": "not_implemented",
             "memory_system": "not_implemented",
-            "windows_automation": "not_implemented",
             "android_client": "not_implemented",
         },
         "registered_skills_count": skill_registry.count,

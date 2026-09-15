@@ -22,8 +22,9 @@ def test_health_endpoint():
     assert subsystems["core"] == "ready"
     assert subsystems["ai_engine"] == "ready"
     assert subsystems["conversation_engine"] == "ready"
+    assert subsystems["windows_automation"] == "ready"
     assert subsystems["voice_engine"] == "not_implemented"
-    assert subsystems["windows_automation"] == "not_implemented"
+    assert subsystems["android_client"] == "not_implemented"
 
 
 def test_root_endpoint():

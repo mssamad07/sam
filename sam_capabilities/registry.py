@@ -96,7 +96,10 @@ class SkillRegistry:
 
         # 1. Evaluate safety tier
         if tool_def.risk_tier == RiskTier.TIER_3_CRITICAL and (
-            not confirmation_token or not permission_manager.check_authorization(confirmation_token)
+            not confirmation_token
+            or not permission_manager.check_authorization(
+                confirmation_token, tool_name=tool_name, arguments=arguments
+            )
         ):
             token = await permission_manager.request_permission(
                 tool_name=tool_name,
