@@ -77,10 +77,52 @@ class MockLLMProvider(BaseLLMProvider):
         if self.preset_responses:
             return self.preset_responses.pop(0)
 
-        # Default echo/conversational reply
+        # Default conversational reply and tool calling heuristics
         last_msg = messages[-1].content if messages else ""
+        lower = last_msg.lower()
+
+        available_tool_names = [t.get("name") for t in (tools or [])] if tools else []
+        tool_calls = []
+
+        if "get_system_metrics" in available_tool_names and any(
+            k in lower for k in ["cpu", "ram", "battery", "metrics", "sysinfo", "system info"]
+        ):
+            tool_calls.append(ToolCall(name="get_system_metrics", arguments={}))
+            return LLMResponse(
+                content="Checking system hardware metrics for you, Boss...",
+                tool_calls=tool_calls,
+                provider=self.name,
+                model=self._default_model,
+            )
+
+        if "search_web" in available_tool_names and any(
+            k in lower for k in ["search", "google", "weather", "look up", "find online"]
+        ):
+            query = last_msg.replace("search", "").replace("find online", "").strip() or "current news"
+            tool_calls.append(ToolCall(name="search_web", arguments={"query": query}))
+            return LLMResponse(
+                content=f"Searching the web for '{query}', Boss...",
+                tool_calls=tool_calls,
+                provider=self.name,
+                model=self._default_model,
+            )
+
+        if any(g in lower for g in ["kaise ho", "kya chal raha", "sab theek", "kaisa hai"]):
+            reply = "Main badhiya hoon Boss! Sab smooth chal raha hai. Aap batao, aaj kya plan hai?"
+        elif any(g in lower for g in ["namaste", "pranam", "kya haal"]):
+            reply = "Namaste Boss! Hamesha ki tarah ready hoon. Batao kya karna hai."
+        elif "who are you" in lower or "koun ho" in lower or "identity" in lower:
+            reply = (
+                "I'm Sam — your personal AI assistant and digital operator. "
+                "Calm, observant, honest, and always here to help you get things done, Boss."
+            )
+        elif "hello" in lower or "hi" in lower or "hey" in lower:
+            reply = f"Hello Boss! Received: {last_msg}. Standing by and ready to assist."
+        else:
+            reply = f"Boss, received: {last_msg}"
+
         return LLMResponse(
-            content=f"Boss, received: {last_msg}",
+            content=reply,
             tool_calls=[],
             provider=self.name,
             model=self._default_model,

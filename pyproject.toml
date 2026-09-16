@@ -46,7 +46,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["sam_core", "sam_capabilities", "sam_voice", "sam_vision", "sam_clients"]
+packages = ["sam_core", "sam_capabilities", "sam_voice", "sam_vision", "sam_clients", "sam_memory", "sam_security"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
