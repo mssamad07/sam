@@ -5,7 +5,7 @@ Uses pydantic-settings for robust environment variable validation.
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -46,11 +46,37 @@ class Settings(BaseSettings):
         description="Base storage directory for local persistent data",
     )
 
-    # Placeholders for future AI / Voice providers (Phase 2+)
-    gemini_api_key: str | None = Field(default=None, description="Placeholder for Gemini API key")
-    openai_api_key: str | None = Field(default=None, description="Placeholder for OpenAI API key")
-    groq_api_key: str | None = Field(default=None, description="Placeholder for Groq API key")
-    anthropic_api_key: str | None = Field(default=None, description="Placeholder for Anthropic API key")
+    # AI / LLM Providers
+    default_provider: str = Field(
+        default="gemini",
+        validation_alias=AliasChoices("default_provider", "DEFAULT_PROVIDER"),
+        description="Default AI provider (gemini, openai, groq, ollama, mock)",
+    )
+    gemini_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("gemini_api_key", "GEMINI_API_KEY", "google_api_key", "GOOGLE_API_KEY"),
+        description="Gemini API key (GEMINI_API_KEY or GOOGLE_API_KEY)",
+    )
+    gemini_model: str = Field(
+        default="gemini-2.0-flash",
+        validation_alias=AliasChoices("gemini_model", "GEMINI_MODEL"),
+        description="Gemini model name",
+    )
+    openai_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("openai_api_key", "OPENAI_API_KEY"),
+        description="OpenAI API key",
+    )
+    groq_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("groq_api_key", "GROQ_API_KEY"),
+        description="Groq API key",
+    )
+    anthropic_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("anthropic_api_key", "ANTHROPIC_API_KEY"),
+        description="Anthropic API key",
+    )
 
     # Placeholders for future Safety & Permissions settings (Phase 2+)
     require_confirmation_for_tier3: bool = Field(

@@ -49,7 +49,8 @@ def run_verification():
         data = resp.json()
         print(f"  -> Health response: status={data.get('status')}, app={data.get('app_name')}")
         assert data.get("status") == "operational", "Status is not operational"
-        assert data.get("subsystems", {}).get("ai_engine") == "not_implemented", "Truthfulness check failed"
+        assert data.get("subsystems", {}).get("ai_engine") == "ready", "Truthfulness check failed"
+        assert data.get("subsystems", {}).get("android_client") == "not_implemented", "Truthfulness check failed"
 
         # Verify WebSocket JSON-RPC
         print("[4/5] Verifying WebSocket JSON-RPC endpoint at /ws/ipc...")

@@ -25,18 +25,23 @@ class LLMRouter:
 
     def _initialize_builtins(self) -> None:
         """Register default provider implementations."""
-        self.register(GeminiProvider(model="gemini-2.0-flash"))
+        gemini_model = getattr(settings, "gemini_model", "gemini-2.0-flash")
+        self.register(GeminiProvider(model=gemini_model))
         self.register(OpenAIProvider(name="openai", model="gpt-4o"))
         self.register(OpenAIProvider(name="groq", model="llama-3.3-70b-versatile"))
         self.register(OllamaProvider(model="llama3.2:latest"))
         self.register(MockLLMProvider(name="mock"))
 
         # Default to configured provider if available, else mock
-        configured = getattr(settings, "default_provider", "mock")
+        configured = getattr(settings, "default_provider", "gemini")
         if configured in self._providers and self._providers[configured].is_available():
             self._default_provider_name = configured
         else:
             self._default_provider_name = "mock"
+            if configured != "mock":
+                logger.info(
+                    f"Configured provider '{configured}' is unavailable; defaulting to 'mock' provider."
+                )
 
     def register(self, provider: BaseLLMProvider) -> None:
         """Register an LLM provider."""

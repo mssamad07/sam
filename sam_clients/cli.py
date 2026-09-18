@@ -1,4 +1,4 @@
-﻿"""
+"""
 Interactive Terminal Client and Command-Line Interface for Sam.
 Allows rich, natural conversation with Sam, tool inspection, and permission confirmation in terminal.
 """
@@ -80,8 +80,10 @@ class SamTerminalCLI:
         table.add_row("Voice Engine", "[green]READY (EdgeTTS + VAD + OpenWakeWord)[/green]")
         table.add_row("Vision Engine", "[green]READY (CameraManager + Screen Capture)[/green]")
         table.add_row("Windows Automation", "[green]READY (Files, Apps, Media, Shell)[/green]")
+        table.add_row("Web Access", "[green]READY (DuckDuckGo + HTTP Fetcher)[/green]")
         table.add_row("Memory System", "[green]READY (SQLite + Semantic Engine)[/green]")
         table.add_row("Security Engine", "[green]READY (Anti-Theft + PIN Protection)[/green]")
+        table.add_row("Android Client", "[yellow]NOT IMPLEMENTED (Scaffold Only)[/yellow]")
         self.console.print(table)
 
     async def show_memory(self) -> None:

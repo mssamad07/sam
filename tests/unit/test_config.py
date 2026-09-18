@@ -38,3 +38,22 @@ def test_settings_port_validation():
 
     with pytest.raises(ValidationError):
         Settings(port=70000)
+
+
+def test_settings_ai_provider_configuration(monkeypatch):
+    # Test default values
+    s_default = Settings()
+    assert s_default.default_provider == "gemini"
+    assert s_default.gemini_model == "gemini-2.0-flash"
+
+    # Test GEMINI_API_KEY env alias
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key-123")
+    s_gemini = Settings()
+    assert s_gemini.gemini_api_key == "test-gemini-key-123"
+
+    # Test GOOGLE_API_KEY env alias
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key-456")
+    s_google = Settings()
+    assert s_google.gemini_api_key == "test-google-key-456"
+

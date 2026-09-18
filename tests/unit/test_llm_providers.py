@@ -68,3 +68,30 @@ def test_llm_router_registration_and_statuses():
 
     with pytest.raises(ValueError):
         router.get_provider("non_existent_provider")
+
+
+def test_gemini_provider_configured_status():
+    gemini = GeminiProvider(api_key="valid-key-abc", model="gemini-2.0-flash")
+    assert gemini.is_available() is True
+    status = gemini.get_status()
+    assert status.available is True
+    assert status.configured is True
+    assert status.message == "Ready"
+    assert status.model == "gemini-2.0-flash"
+
+
+@pytest.mark.asyncio
+async def test_gemini_provider_unconfigured_generate_error():
+    gemini = GeminiProvider(api_key="")
+    assert gemini.is_available() is False
+    with pytest.raises(RuntimeError) as exc:
+        await gemini.generate([LLMMessage(role=MessageRole.USER, content="Hello")])
+    assert "GEMINI_API_KEY or GOOGLE_API_KEY" in str(exc.value)
+
+
+def test_llm_router_fallback_to_mock_when_unconfigured():
+    # When default_provider is gemini but no key exists, router safely defaults to mock
+    router = LLMRouter()
+    active = router.get_provider()
+    assert active.name == "mock"
+

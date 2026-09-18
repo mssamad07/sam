@@ -17,13 +17,16 @@ def test_health_endpoint():
     assert data["status"] == "operational"
     assert data["app_name"] == settings.app_name
     assert data["version"] == settings.version
-    # Truthful reporting verification: unbuilt subsystems must NOT be reported as ready
+    # Truthful reporting verification: operational subsystems must be reported as ready, unbuilt as not_implemented
     subsystems = data["subsystems"]
     assert subsystems["core"] == "ready"
     assert subsystems["ai_engine"] == "ready"
     assert subsystems["conversation_engine"] == "ready"
+    assert subsystems["voice_engine"] == "ready"
+    assert subsystems["vision_engine"] == "ready"
     assert subsystems["windows_automation"] == "ready"
-    assert subsystems["voice_engine"] == "not_implemented"
+    assert subsystems["web_access"] == "ready"
+    assert subsystems["memory_system"] == "ready"
     assert subsystems["android_client"] == "not_implemented"
 
 
