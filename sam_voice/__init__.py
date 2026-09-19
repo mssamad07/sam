@@ -1,4 +1,4 @@
-﻿"""
+"""
 Voice Engine module for Sam.
 """
 from sam_voice.audio_io import AudioPlayer
@@ -18,6 +18,7 @@ from sam_voice.events import (
     VoiceStateChangedEvent,
     WakeDetectedEvent,
 )
+from sam_voice.mic_listener import MicrophoneListener
 from sam_voice.pipeline import VoicePipeline
 from sam_voice.state_machine import InvalidVoiceStateTransition, VoiceStateMachine
 from sam_voice.states import VoiceState
@@ -35,6 +36,7 @@ __all__ = [
     "BaseWakeWordDetector",
     "EnergyVAD",
     "InvalidVoiceStateTransition",
+    "MicrophoneListener",
     "MockSTTProvider",
     "MockTTSProvider",
     "MockWakeWordDetector",

@@ -41,6 +41,17 @@ class OllamaProvider(BaseLLMProvider):
         except Exception:
             return False
 
+    def list_local_models(self) -> list[str]:
+        """Fetch list of locally installed Ollama model tags."""
+        try:
+            resp = httpx.get(f"{self._base_url}/api/tags", timeout=2.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                return [m.get("name") for m in data.get("models", []) if "name" in m]
+        except Exception:
+            pass
+        return []
+
     def get_status(self) -> ProviderStatus:
         available = self.is_available()
         return ProviderStatus(
